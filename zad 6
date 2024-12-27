@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
+
+class FileSearch:
+    def __init__(self, start_directory, depth_limit):
+        self.start_directory = start_directory
+        self.depth_limit = depth_limit
+        self.found_files = []
+
+    def check_permissions(self, path):
+        """Проверяет права доступа файла (rwxr-xr--)"""
+        try:
+            file_stat = os.stat(path)
+            # Получаем права доступа в виде строки, например 'rwxr-xr--'
+            permissions = oct(file_stat.st_mode)[-3:]
+            # Проверка, что права доступа равны rwxr-xr--
+            return permissions == '755'
+        except PermissionError:
+            return False
+
+    def search_files(self, target_depth):
+        """Итеративный поиск файлов с ограничением по глубине"""
+        for depth in range(1, target_depth + 1):
+            self._dfs(self.start_directory, depth, 0)
+            if len(self.found_files) >= 10:
+                break
+        return self.found_files
+
+    def _dfs(self, current_directory, target_depth, current_depth):
+        """Рекурсивный поиск с ограничением по глубине"""
+        if current_depth > target_depth:
+            return
+
+        try:
+            for entry in os.scandir(current_directory):
+                if entry.is_dir():
+                    # Если это директория, углубляемся в неё
+                    self._dfs(entry.path, target_depth, current_depth + 1)
+                elif entry.is_file():
+                    # Если это файл, проверяем права доступа
+                    if self.check_permissions(entry.path):
+                        self.found_files.append(entry.path)
+                    if len(self.found_files) >= 10:
+                        return
+        except PermissionError:
+            # Если нет прав доступа к директории, пропускаем её
+            pass
+
+# Пример использования
+start_directory = "/path/to/start/directory"  # Путь к начальной директории
+depth_limit = 3  # Максимальная глубина для поиска
+
+# Создаем объект для поиска
+file_search = FileSearch(start_directory, depth_limit)
+
+# Запускаем поиск
+found_files = file_search.search_files(depth_limit)
+
+# Выводим найденные файлы
+if found_files:
+    print("Найденные файлы с правами rwxr-xr--:")
+    for file in found_files:
+        print(file)
+else:
+    print("Файлы с правами rwxr-xr-- не найдены.")
