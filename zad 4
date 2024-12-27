@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+  
+class Node:
+    def __init__(self, value):
+        self.value = value  # Значение узла
+        self.left = None    # Левый потомок
+        self.right = None   # Правый потомок
+
+class IterativeDeepeningSearch:
+    def __init__(self, root):
+        self.root = root  # Корень дерева
+
+    def dfs_with_depth_limit(self, node, target, depth):
+        """ Поиск в глубину с ограничением по глубине """
+        # Если узел пустой или мы достигли глубины 0, возвращаем False
+        if node is None or depth < 0:
+            return False
+        # Если нашли целевой элемент
+        if node.value == target:
+            return True
+        # Ищем в левом и правом поддеревьях с уменьшением глубины
+        return self.dfs_with_depth_limit(node.left, target, depth - 1) or self.dfs_with_depth_limit(node.right, target, depth - 1)
+
+    def iterative_deepening_search(self, target):
+        """ Итеративный поиск с увеличением глубины """
+        depth = 0
+        while True:
+            # Начинаем поиск с ограничением по глубине
+            if self.dfs_with_depth_limit(self.root, target, depth):
+                return True
+            depth += 1  # Увеличиваем глубину на 1 и повторяем поиск
+
+# Пример использования
+root = Node(1)
+root.left = Node(2)
+root.right = Node(3)
+root.left.left = Node(4)
+root.left.right = Node(5)
+root.right.left = Node(6)
+root.right.right = Node(7)
+
+# Создаем объект для итеративного углубления
+ids = IterativeDeepeningSearch(root)
+
+# Ищем элемент в дереве
+target = 5
+if ids.iterative_deepening_search(target):
+    print(f"Элемент {target} найден в дереве.")
+else:
+    print(f"Элемент {target} не найден в дереве.")
